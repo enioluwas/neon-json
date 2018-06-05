@@ -1,0 +1,26 @@
+{
+  "name": "neon-json",
+  "version": "0.1.0",
+  "description": "A Rust library to serialize and deserialize JavaScript objects",
+  "main": "lib/index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/enioluwa23/neon-json"
+  },
+  "author": "Enioluwa Segun <enioluwasegun@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "neon-cli": "^0.1.23",
+    "request": "^2.87.0",
+    "request-promise": "^4.2.2",
+    "mocha": "^5.2.0",
+    "chai": "^4.1.2"
+  },
+  "scripts": {
+    "install": "neon build",
+    "test": "mocha"
+  },
+  "devDependencies": {
+    "jsdoc": "^3.5.5"
+  }
+}
