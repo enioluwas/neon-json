@@ -46,14 +46,13 @@ describe("Neon-JSON tests", function()
     {
        await getString()
        const neonParsed = NeonJSON.parse(input)
-       confirmP(neonParsed, input)
+       await confirmP(neonParsed, input)
     })
 
     it("Stringify JSON Object", async()=>
     {
         await getJson()
         const neonStringified = NeonJSON.stringify(input)
-        confirmS(neonStringified, input)
+        await confirmS(neonStringified, input)
     })
-
 })
