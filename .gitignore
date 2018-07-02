@@ -8,3 +8,6 @@ native/artifacts.json
 .idea
 .iml
 .vscode
+.nyc*
+coverage
+~u*
