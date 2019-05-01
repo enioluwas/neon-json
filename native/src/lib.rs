@@ -4,7 +4,7 @@ extern crate neon_serde;
 extern crate serde_json;
 
 use neon::js::error::{JsError, Kind};
-use neon::js::{Object, JsString, JsValue, JsFunction, JsObject, JsNull};
+use neon::js::{Object, JsString, JsValue, JsFunction, JsObject, JsArray, JsNull};
 use neon::vm::{Call, JsResult};
 use neon::mem::Handle;
 use neon::scope::RootScope;
@@ -27,10 +27,7 @@ fn parse(call: Call) -> JsResult<JsObject>
 
     if args_len > 1
         {
-            let js_reviver = call.arguments
-                .require(scope, 1)?
-                .check::<JsFunction>()?;
-
+            let js_reviver = call.arguments.require(scope, 1)?.check::<JsFunction>()?;
             let _obj = call_reviver(scope, js_object, js_reviver)?;
         }
 
@@ -60,10 +57,39 @@ fn call_reviver<'a>(scope: &'a mut RootScope, obj: Handle<'a, JsObject>, reviver
     Ok(obj)
 }
 
+fn call_replacer<'a>(scope: &'a mut RootScope, obj: Handle<'a, JsObject>, replacer: Handle<'a, JsArray>) -> JsResult<'a, JsObject>
+{
+    // WIP
+    Ok(obj)
+}
+
 fn stringify(call: Call) -> JsResult<JsString>
 {
     let scope = call.scope;
-    let js_object = call.arguments.require(scope, 0)?.check::<JsValue>()?;
+    let args_len = call.arguments.len();
+    let mut js_object = call.arguments.require(scope, 0)?.check::<JsValue>()?;
+
+    if args_len > 1 && !js_object.is_a::<JsArray>()
+        {
+            let mut js_object = js_object.check::<JsObject>()?;
+            let js_replacer = call.arguments.require(scope, 1)?;
+
+            if js_replacer.is_a::<JsFunction>()
+            {
+                let js_replacer = js_replacer.check::<JsFunction>()?;
+                js_object = call_reviver(scope, js_object, js_replacer)?;
+            }
+
+            else if js_replacer.is_a::<JsArray>()
+            {
+                let js_replacer = js_replacer.check::<JsArray>()?;
+                js_object = call_replacer(scope, js_object, js_replacer)?;
+            }
+            else
+            {
+                JsError::throw(Kind::TypeError, "Type error")?;
+            }
+        }
 
     let js_object: serde_json::Value = neon_serde::from_value(scope, js_object)?;
     let js_string = serde_json::to_string(&js_object)
@@ -71,7 +97,9 @@ fn stringify(call: Call) -> JsResult<JsString>
             JsError::throw(Kind::Error, &err.to_string())
         })?;
 
-    JsString::new_or_throw(scope, &js_string)
+    let js_string = JsString::new_or_throw(scope, &js_string)?;
+
+    Ok(js_string)
 }
 
 register_module!(m, 
